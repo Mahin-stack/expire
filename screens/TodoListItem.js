@@ -1,12 +1,23 @@
 import React from "react";
-import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
+import { Text, StyleSheet, View, Alert, TouchableOpacity } from "react-native";
 import db from "../config";
 
 const TodoListItem = ({ todo, id }) => {
 
   const deleteTodo = () =>{
-    db.collection("s_list").doc(id).delete();
-  }
+    Alert.alert(
+        "Remove !",
+        "Do you want to remove this item from the list ?",
+        [{
+            text: "Cancel",
+            onPress: () => console.log("Cancel Pressed"),
+            style: "cancel"
+          },
+          { 
+            text: "Remove",
+            onPress: () =>  db.collection("s_list").doc(id).delete()
+        }]
+        )};
 
   return (
     <View style={styles.footer}>

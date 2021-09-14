@@ -4,7 +4,6 @@ import { Avatar } from "react-native-elements";
 import DatePicker from 'react-native-datepicker';
 import * as ImagePicker from "expo-image-picker";
 import firebase from "firebase";
-import moment from "moment";
 import db from '../config';
 import {styles} from '../styles/styles';
 
@@ -21,11 +20,16 @@ export default class AddProduct extends Component {
     }
   }
 
-  addItems = ({item, date, note, image, quantity}) => {
+  createUniqueId() {
+    return Math.random().toString(36).substring(7);
+  }
+
+  addItems = (item, date, note, image, quantity) => {
    if(!item ||  !date){
       return Alert.alert("Please fill out all fields");
     }
     else {
+        var randomRequestId = this.createUniqueId();
       db.collection("item_details").add({
         emailId:  this.state.emailId,
         item: item,
@@ -33,6 +37,8 @@ export default class AddProduct extends Component {
         note: note, 
         image: image,
         quantity: quantity,
+        id: randomRequestId,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       })
       this.props.navigation.navigate("AllProducts")
         this.setState({
@@ -149,13 +155,16 @@ export default class AddProduct extends Component {
           <TouchableOpacity
             style={styles.buttonContainer}
             onPress={()=>{
-              this.addItems(this.state.item, this.state.date, this.state.note, this.state.image, this.state.quantity)
-            }}>
+              this.addItems(
+                this.state.item.toString(),
+               this.state.date.toString(),
+                this.state.note.toString(), 
+                this.state.image, 
+                this.state.quantity.toString()
+                )}}>
               <Text style={styles.buttonText}>Add</Text>
             </TouchableOpacity>
       </ImageBackground>
     )
   }
 }
-
-           

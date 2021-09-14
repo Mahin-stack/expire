@@ -69,7 +69,7 @@ container:{
     color: "#fff",
     borderRadius: 18,
     backgroundColor: "red",
-    width: 80,
+    width: 90,
     height: 40,
     justifyContent: "center",
     alignItems: "center",

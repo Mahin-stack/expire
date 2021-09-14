@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity} from "react-native";
+import { View, Text, FlatList, Image, Alert, TouchableOpacity} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Animated from "react-native-reanimated";
 import firebase from "firebase";
@@ -20,34 +20,43 @@ export default class AllProducts extends Component {
     this.state = {
       emailId: firebase.auth().currentUser.email,
       allItems: [],
+      id: '',
     }
     this.requestRef = null
   }
+  
 
   getAllItems = () => {
     this.requestRef = db.collection("item_details")
     .where("emailId", "==", this.state.emailId)
     .onSnapshot(snapshot => {
-      var allItems = [];
-      var id = ''
+        var allItems = [];
       snapshot.docs.map(doc => {
         var item = doc.data();
-        id= doc.id
         item["doc_id"] = doc.id;
         allItems.push(item);
       });
       this.setState({
         allItems: allItems,
-        id: id,
       });
-    });
-  }
+    })}
 
-  deleteItems = (id) => {
-      db.collection("item_details").doc(id).delete()
-  }
+  deleteItem = (id) => {
+    Alert.alert(
+        "Remove !",
+        "Do you want to remove this item from the list ?",
+        [{
+            text: "Cancel",
+            onPress: () => console.log("Cancel Pressed"),
+            style: "cancel"
+          },
+          { 
+            text: "Remove",
+            onPress: () =>   db.collection('item_details').doc(id.doc_id).delete() 
+        }]
+        )};
 
-    componentDidMount(){
+  componentDidMount(){
       this.getAllItems();
     }
 
@@ -98,14 +107,15 @@ export default class AllProducts extends Component {
         <Animated.View 
         style={[styles.viewContainer, {transform : [{scale}] }, opacity ]}>
             <Image source = {{uri : item.image ? item.image : "https://www.vhv.rs/dpng/d/312-3120300_default-profile-hd-png-download.png"}} style={styles.img}/>
-                <View style={styles.textContainer}>
-                <Text style={styles.text}>{item.item}</Text>
-                <Text style={styles.text2}>Expiring : {moment(item.date).endOf('day').fromNow()}</Text>
-                <Text style={styles.text3}>Note : {item.note}</Text>
-                <Text style={styles.text4}>Quantity : {item.quantity}</Text>
-                <View style={styles.delTxt}>
-                    <TouchableOpacity onPress={() => this.deleteItems(this.state.id)}>
-                        <Text style={styles.text5}>delete</Text>
+               <View style={styles.textContainer}>
+               <Text style={styles.text}>{item.item}</Text>
+               <Text style={styles.text2}>Expiring : {moment(item.date).endOf('day').fromNow()}</Text>
+               <Text style={styles.text3}>Note : {item.note}</Text>
+               <Text style={styles.text4}>Quantity : {item.quantity}</Text>
+               <View style={styles.delTxt}>
+                    <TouchableOpacity
+                    onPress={() => this.deleteItem(this.state.allItems[index])}>
+                    <Text style={styles.text5}>Remove</Text>
                     </TouchableOpacity>
                 </View>
                 </View>

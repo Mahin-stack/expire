@@ -248,6 +248,460 @@
   //   });
   // }
 
+import React, { Component } from "react";
+import { View, Text, FlatList, Image, TouchableOpacity} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import Animated from "react-native-reanimated";
+import firebase from "firebase";
+import db from "../config";
+import { styles } from "../styles/styles2";
+import MyHeader from "../components/MyHeader";
+import moment from "moment";
+
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
+const SPACING = 20;
+const AVATAR_SIZE = 70;
+const ITEM_SIZE = AVATAR_SIZE + SPACING * 3;
+
+export default class AllProducts extends Component {
+  scrollY= new Animated.Value(0);
+  constructor(props) {
+    super(props);
+    this.state = {
+      emailId: firebase.auth().currentUser.email,
+      allItems: [],
+    }
+    this.requestRef = null
+  }
+
+  getAllItems = () => {
+    this.requestRef = db.collection("item_details")
+    .where("emailId", "==", this.state.emailId)
+    .onSnapshot(snapshot => {
+      var allItems = [];
+    //   var id = ''
+      snapshot.docs.map(doc => {
+        var item = doc.data();
+        // id= doc.id
+        item["doc_id"] = doc.id;
+        allItems.push(item);
+      });
+      this.setState({
+        allItems: allItems,
+        // id: id,
+      });
+    });
+  }
+
+//   deleteItems = (id) => {
+//       db.collection("item_details").doc(id).delete()
+//   }
+
+    componentDidMount(){
+      this.getAllItems();
+    }
+
+    componentWillUnmount(){
+      this.requestRef();
+    }
+   
+    render(){
+      return(
+      <Animated.View style={styles.container}>
+    <MyHeader navigation={this.props.navigation} title="All Products"/>
+
+            <AnimatedFlatList       
+            style={styles.container}
+            keyExtractor={ (item) => item.id}
+            data={this.state.allItems}
+            onScroll={Animated.event(
+            [{nativeEvent: {contentOffset: {y: this.scrollY}}}],
+            {useNativeDriver: true} 
+          )}
+           contentContainerStyle = {{
+             padding: 20,
+             paddingTop: StatusBar.currentHeight || 20
+           }}
+           renderItem = { ({ item, index }) => {
+           const inputRange = [
+                -1,
+                0,
+                ITEM_SIZE * index,
+                ITEM_SIZE * (index + 5)
+              ]
+              let scale = this.scrollY.interpolate({
+                inputRange,
+              outputRange :[1,1,1,0],
+              })
+    
+              const opacityRange = [
+                -1,
+                0,
+                ITEM_SIZE * index,
+                ITEM_SIZE * (index + 2)
+              ]
+              let opacity = this.scrollY.interpolate({
+                inputRange: opacityRange,
+              outputRange :[1,1,1,0],
+              })
+            return (
+        <Animated.View 
+        style={[styles.viewContainer, {transform : [{scale}] }, opacity ]}>
+            <Image source = {{uri : item.image ? item.image : "https://www.vhv.rs/dpng/d/312-3120300_default-profile-hd-png-download.png"}} style={styles.img}/>
+               <View style={styles.textContainer}>
+               <Text style={styles.text}>{item.item}</Text>
+               <Text style={styles.text2}>Expiring : {moment(item.date).endOf('day').fromNow()}</Text>
+               <Text style={styles.text3}>Note : {item.note}</Text>
+               <Text style={styles.text4}>Quantity : {item.quantity}</Text>
+               <View style={styles.delTxt}>
+                    <TouchableOpacity>
+                        <Text style={styles.text5}>delete</Text>
+                    </TouchableOpacity>
+                </View>
+                </View>
+        </Animated.View>
+            )
+           }}
+           />
+
+       </Animated.View>
+    )
+  }
+}
+import React, { Component } from "react";
+import { View, Text, FlatList, Image, TouchableOpacity} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import Animated from "react-native-reanimated";
+import firebase from "firebase";
+import db from "../config";
+import { styles } from "../styles/styles2";
+import MyHeader from "../components/MyHeader";
+import moment from "moment";
+
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
+const SPACING = 20;
+const AVATAR_SIZE = 70;
+const ITEM_SIZE = AVATAR_SIZE + SPACING * 3;
+
+export default class AllProducts extends Component {
+  scrollY= new Animated.Value(0);
+  constructor(props) {
+    super(props);
+    this.state = {
+      emailId: firebase.auth().currentUser.email,
+      allItems: [],
+      docId: ''
+    }
+    this.requestRef = null
+  }
+
+  getAllItems = () => {
+    this.requestRef = db.collection("item_details")
+    .where("emailId", "==", this.state.emailId)
+    .onSnapshot(snapshot => {
+      var allItems = [];
+      var docId = '';
+      snapshot.docs.map(doc => {
+         docId = doc.id;
+        var item = doc.data();
+        item["doc_id"] = doc.id;
+        allItems.push(item);
+      });
+      this.setState({
+        allItems: allItems,
+        docId: docId
+      });
+    });
+   }
+
+  deleteItem = (docId) => {
+      db.collection("item_details").doc(docId).delete();
+      console.log(docId);
+  }
+
+  componentDidMount(){
+      this.getAllItems();
+    }
+
+    componentWillUnmount(){
+      this.requestRef();
+    }
+   
+    render(){
+      return(
+      <Animated.View style={styles.container}>
+    <MyHeader navigation={this.props.navigation} title="All Products"/>
+
+            <AnimatedFlatList       
+            style={styles.container}
+            keyExtractor={ (item) => item.id}
+            data={this.state.allItems}
+            onScroll={Animated.event(
+            [{nativeEvent: {contentOffset: {y: this.scrollY}}}],
+            {useNativeDriver: true} 
+          )}
+           contentContainerStyle = {{
+             padding: 20,
+             paddingTop: StatusBar.currentHeight || 20
+           }}
+           renderItem = { ({ item, index }) => {
+           const inputRange = [
+                -1,
+                0,
+                ITEM_SIZE * index,
+                ITEM_SIZE * (index + 5)
+              ]
+              let scale = this.scrollY.interpolate({
+                inputRange,
+              outputRange :[1,1,1,0],
+              })
+    
+              const opacityRange = [
+                -1,
+                0,
+                ITEM_SIZE * index,
+                ITEM_SIZE * (index + 2)
+              ]
+              let opacity = this.scrollY.interpolate({
+                inputRange: opacityRange,
+              outputRange :[1,1,1,0],
+              })
+            return (
+        <Animated.View 
+        style={[styles.viewContainer, {transform : [{scale}] }, opacity ]}>
+            <Image source = {{uri : item.image ? item.image : "https://www.vhv.rs/dpng/d/312-3120300_default-profile-hd-png-download.png"}} style={styles.img}/>
+               <View style={styles.textContainer}>
+               <Text style={styles.text}>{item.item}</Text>
+               <Text style={styles.text2}>Expiring : {moment(item.date).endOf('day').fromNow()}</Text>
+               <Text style={styles.text3}>Note : {item.note}</Text>
+               <Text style={styles.text4}>Quantity : {item.quantity}</Text>
+               <View style={styles.delTxt}>
+                    <TouchableOpacity
+                     onPress={() => {this.deleteItem(this.state.docId)}}>
+                        <Text style={styles.text5}>delete</Text>
+                    </TouchableOpacity>
+                </View>
+                </View>
+        </Animated.View>
+            )
+           }}
+           />
+
+       </Animated.View>
+    )
+  }
+}
+
+// import React,{ Component } from "react";
+// import { View, Button, Text, FlatList, StyleSheet } from "react-native";
+// import MyHeader from "../components/MyHeader";
+// import firebase from "firebase";
+// import db from '../config';
+
+// export default class Settings extends Component {
+//     constructor(props){
+//        super(props)
+//          this.state={
+//             emailId: firebase.auth().currentUser.email,
+//             details: [],
+//          }
+//          this.requestRef= null;
+//     }
+
+//     getDetails = () => {
+//         this.requestRef = db.collection("item_details")
+//         .where("emailId", "==", this.state.emailId)
+//         .onSnapshot(snapshot => {
+//           var details = [];
+//           snapshot.docs.map(doc => {
+//             var item = doc.data();
+//             item["doc_id"] = doc.id;
+//             details.push(item);
+//           });
+//           this.setState({
+//             details: details
+//           });
+//         });
+//     }
+
+//     componentDidMount(){
+//         this.getDetails();
+//     }
+//     componentWillMount(){
+//         this.requestRef
+//     }
+
+//     render() {
+//         return (
+//         <View style={styles.cont}>
+//          <MyHeader navigation={this.props.navigation} title="Settings"/>
+            
+//             <View style={{flex: 0.09, backgroundColor: "red", flexDirection: "row" ,justifyContent: "space-between", marginTop: "55%"}}>
+//               <Text style={{fontSize: 18, marginTop: 10,  marginLeft: 10,}}>Name : </Text>
+//               <Text style={{fontSize: 18, marginTop: 10,  marginRight: 10,}}>date : </Text>
+//             </View>
+
+//           <FlatList
+//           style={styles.cont}
+//           data={this.state.details}
+//           keyExtractor={ (item) => item.id}
+//           renderItem={({ item }) => {
+//               return(             
+//                 <View style={{display: "flex", flexDirection: "row", marginTop: 10, justifyContent: "space-between"}}>
+//                 <Text>{item.item}</Text>
+//                 </View>
+//               )
+//           }}
+//           />
+//          </View>
+//         )
+//     }
+// }
+
+// const styles = StyleSheet.create({
+//     cont: {
+//         flex: 1,
+//         backgroundColor: "#fff",
+//     },
+// })
+import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
+import React, { useState, useEffect, useRef } from 'react';
+import { Text, View, Button, Alert } from 'react-native';
+import firebase from 'firebase';
+import db from '../config';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
+export default function App({navigation}) {
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [notification, setNotification] = useState(false);
+  const [date, setDate] = useState('');
+  const [name, setName] = useState('')
+  const notificationListener = useRef();
+  const responseListener = useRef();
+  const emailId = firebase.auth().currentUser.email
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
+
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
+
+
+   function getDate(){
+        db.collection('item_details')
+        .where("emailId", "==", emailId)
+        .onSnapshot(querySnapshot => {
+            setDate(
+                querySnapshot.docs.map((doc) => ({
+                    date: doc.data().date,
+                    id: doc.id,
+                  }))
+            )})
+        };
+
+    function getName(){
+        db.collection('users')
+        .where("emailId", "==", emailId)
+        .get().then(snpashot => {
+            snpashot.forEach(doc => {
+                var name = doc.data().first_name
+                setName(name);
+            })
+        })
+    }
+
+    // useEffect(() => {
+    //     getName();
+    // }, []);
+
+    useEffect(async() => {
+        await schedulePushNotification();
+    }, [])
+  return (
+    <View style={{flex: 1,alignItems: 'center',justifyContent: 'space-around',}}>
+      <Button
+      title="Press to schedule a notification"/>
+      <Text style={{color: "red"}}>{name}</Text>
+    <Button 
+      title= "Log Out"
+      onPress={() => {
+        Alert.alert(
+            "Sign out !",
+            "Are you sure you want to Sign out ?",
+            [{
+                text: "No",
+                onPress: () => console.log("Cancel Pressed"),
+                style: "cancel"
+              },
+              { 
+                text: "Yes",
+                onPress: () =>  {
+                navigation.navigate('LoginScreen');
+                firebase.auth().signOut();
+            }}]
+            )}}
+    />
+    </View>
+  );
+}
+
+async function schedulePushNotification() {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "You've got mail! 📬",
+      body: 'Here is the notification body',
+      data: { data: 'goes here' },
+    },
+    trigger: {seconds: 2},
+  });
+  console.log(date);
+}
+
+async function registerForPushNotificationsAsync() {
+  let token;
+  if (Constants.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      alert('Failed to get push token for push notification!');
+      return;
+    }
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log(token);
+  } else {
+    alert('Must use physical device for Push Notifications');
+  }
+  return token;
+}
+
+
+    <TouchableOpacity
+    onPress={() => this.deleteItem(this.state.allItems[index])}>
+    <Text style={styles.text5}>Delete</Text>
+    </TouchableOpacity>
 
           {/* <Button 
             title= "Log Out"
@@ -256,3 +710,24 @@
             firebase.auth().signOut()
             }}
            /> */}
+
+           
+firestore()
+  .collection('Users')
+  // Filter results
+  .where('age', '>=', 18)
+  .get()
+  .then(querySnapshot => {
+    /* ... */
+  })
+
+      function getName(){
+        db.collection('users')
+        .where("emailId", "==", emailId)
+        .get().then(snpashot => {
+            snpashot.forEach(doc => {
+                var name = doc.data().first_name
+                setName(name);
+            })
+        })
+    }
